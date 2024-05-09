@@ -1,0 +1,84 @@
+SELECT 
+    `tabla1`.`Alumno` AS `Alumno`,
+    `tabla1`.`DNI` AS `DNI`,
+    `tabla2`.`sucursal` AS `Sucursal`,
+    `tabla1`.`created` AS `Created`,
+    `tabla2`.`sale_date` AS `Sale_date`,
+    `tabla2`.`Vendedor` AS `Vendedor`,
+    `tabla2`.`Plan_vendido` AS `Plan_vendido`,
+    `tabla2`.`item` AS `item`
+FROM 
+    (
+        (
+            SELECT 
+                `trainees`.`name` AS `Alumno`,
+                `users`.`dni` AS `DNI`,
+                `trainees`.`created` AS `created`,
+                `users_profiles`.`type` AS `perfil`
+            FROM 
+                (
+                    `trainees`
+                    LEFT JOIN `users_profiles` ON (`trainees`.`id` = `users_profiles`.`trainee_id`)
+                )
+                LEFT JOIN `users` ON (`users_profiles`.`user_id` = `users`.`id`)
+            WHERE 
+                `users_profiles`.`type` = 'TRAINEE'
+        ) `tabla1`
+        LEFT JOIN 
+            (
+                WITH RankedTransactions AS (
+                    SELECT 
+                        `u2`.`dni` AS `dni`,
+                        `trn`.`created` AS `Created`,
+                        `t`.`datetime` AS `Sale_date`,
+                        `t`.`name` AS `Alumno`,
+                        `b`.`name` AS `Sucursal_vendida`,
+                        `crtr`.`name` AS `Plan_vendido`,
+                        `i`.`name` AS `Item`,
+                        `trcd`.`expiration_date` AS `Expiration_date`,
+                        `t`.`discount` AS `Descuento_Bonificacion`,
+                        `t`.`amount` AS `Importe`,
+                        `tt`.`name` AS `Tipo_de_transaccion`,
+                        `t`.`description` AS `Detalle`,
+                        `pay2`.`name` AS `Forma_de_Pago`,
+                        `tt`.`name` AS `transaction_name`,
+                        `u`.`name` AS `Recepcionista`,
+                        ROW_NUMBER() OVER (PARTITION BY `u2`.`dni` ORDER BY `t`.`datetime`) AS `row_num`
+                    FROM 
+                        `transactions` `t`
+                        LEFT JOIN `users` `u` ON (`u`.`id` = `t`.`user_id`)
+                        LEFT JOIN `transaction_types` `tt` ON (`tt`.`id` = `t`.`transaction_type_id`)
+                        LEFT JOIN `trainees_credits` `trcd` ON (`trcd`.`transaction_id` = `t`.`id`)
+                        LEFT JOIN `trainees` `trn` ON (`trn`.`id` = `trcd`.`trainee_id`)
+                        LEFT JOIN `transactions_items` `trit` ON (`trit`.`transaction_id` = `t`.`id`)
+                        LEFT JOIN `items` `i` ON (`i`.`id` = `trit`.`item_id`)
+                        LEFT JOIN `boxes` `b` ON (`t`.`box_id` = `b`.`id`)
+                        LEFT JOIN `credits_types` `crtr` ON (`trcd`.`credit_type_id` = `crtr`.`id`)
+                        LEFT JOIN `transactions_payments` `trpy2` ON (`t`.`id` = `trpy2`.`transaction_id`)
+                        LEFT JOIN `payments` `pay2` ON (`trpy2`.`payment_id` = `pay2`.`id`)
+                        LEFT JOIN `users_profiles` `up` ON (`up`.`trainee_id` = `t`.`trainee_id`)
+                        LEFT JOIN `users` `u2` ON (`u2`.`id` = `up`.`user_id`)
+                    WHERE 
+                        `t`.`status` = 'ACTIVE'
+                        AND `tt`.`type` <> 'cashbox'
+                )
+                SELECT 
+                    `RankedTransactions`.`dni` AS `DNI`,
+                    `RankedTransactions`.`Sucursal_vendida` AS `sucursal`,
+                    `RankedTransactions`.`Alumno` AS `Alumno`,
+                    `RankedTransactions`.`transaction_name` AS `Tipo`,
+                    `RankedTransactions`.`Sale_date` AS `sale_date`,
+                    `RankedTransactions`.`Recepcionista` AS `Vendedor`,
+                    `RankedTransactions`.`Plan_vendido` AS `Plan_vendido`,
+                    `RankedTransactions`.`Item` AS `item`
+                FROM 
+                    `RankedTransactions`
+                WHERE 
+                    `RankedTransactions`.`row_num` = 1 
+                    AND (
+                        `RankedTransactions`.`transaction_name` = 'Venta Consumidor Final' 
+                        OR `RankedTransactions`.`transaction_name` = 'Venta Responsable Inscripto'
+                    )
+            ) `tabla2` 
+        ON (`tabla1`.`DNI` = `tabla2`.`DNI`)
+    )
