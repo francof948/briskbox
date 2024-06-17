@@ -1,0 +1,72 @@
+WITH LatestTrainees AS (
+    SELECT
+        tr.id AS trainee_id,
+        tr.name AS Alumno,
+        u.dni,
+        tr.created AS Created,
+        u.name AS Creado_por
+    FROM 
+        trainees tr
+        LEFT JOIN users_profiles up ON tr.id = up.trainee_id
+        LEFT JOIN users u ON up.user_id = u.id
+),
+LatestSales AS (
+    SELECT
+        tc.datetime AS Sale_date,
+        tr.name AS Alumno,
+        u.dni,
+        b.name AS Sucursal,
+        ct.name AS Plan_vendido,
+        u2.name AS Vendedor,
+        tc.`type`,
+        tc.trainee_id
+    FROM 
+        trainees_credits tc
+        LEFT JOIN boxes b ON tc.box_id = b.id
+        LEFT JOIN trainees tr ON tc.trainee_id = tr.id
+        LEFT JOIN users_profiles up ON tr.id = up.trainee_id
+        LEFT JOIN users u ON up.user_id = u.id
+        LEFT JOIN credits_types ct ON tc.credit_type_id = ct.id
+        LEFT JOIN transactions t ON tc.transaction_id = t.id
+        LEFT JOIN users u2 ON t.user_id = u2.id
+    WHERE 
+        tc.`status` <> 'PENDING' AND tc.`status` <> 'CANCELED'
+),
+LatestProofClasses AS (
+    SELECT
+        tc.date AS Proof_class_date,
+        cl.time AS Hora,
+        tr.name AS Alumno,
+        u.dni,
+        b.name AS Sucursal_proof_class
+    FROM 
+        trainees_clases tc
+        LEFT JOIN trainees tr ON tc.trainee_id = tr.id
+        LEFT JOIN boxes b ON tc.box_id = b.id
+        LEFT JOIN clases cl ON tc.clase_id = cl.id
+        LEFT JOIN clases_types ct ON cl.clase_type_id = ct.id
+        LEFT JOIN users_profiles up ON tr.id = up.trainee_id
+        LEFT JOIN users u ON up.user_id = u.id
+    WHERE 
+        tc.type = 'PROOFCLASS'
+        AND tc.status = 'PRESENT'
+)
+SELECT 
+    lt.Alumno,
+    lt.dni,
+    ls.Sucursal,
+    lt.Created,
+    lt.Creado_por,
+    ls.Sale_date,
+    ls.Vendedor,
+    ls.Plan_vendido,
+    ls.`type`,
+    lp.Proof_class_date,
+    lp.Hora,
+    lp.Sucursal_proof_class
+FROM 
+    LatestTrainees lt
+    LEFT JOIN LatestSales ls ON lt.trainee_id = ls.trainee_id
+    LEFT JOIN LatestProofClasses lp ON lt.dni = lp.dni
+ORDER BY 
+    lt.Created DESC;
