@@ -8,6 +8,7 @@ WITH Numerado AS (
         t1.Plan_vendido,
         users.name AS Vendedor,
         t1.`type`,
+        t1.expiration_date, -- Añadimos la columna expiration_date
         ROW_NUMBER() OVER (PARTITION BY t1.dni ORDER BY t1.Fecha ASC) AS rn,
         CASE 
             WHEN t1.Plan_vendido = 'Credito de cortesia' THEN 
@@ -25,7 +26,7 @@ WITH Numerado AS (
             b.name AS Sucursal,
             ct.name AS Plan_vendido,
             tc.`type`,
-            tc.expiration_date,
+            tc.expiration_date, -- Añadimos la columna expiration_date
             t.user_id
         FROM 
             trainees_credits tc
@@ -52,6 +53,7 @@ SELECT
     t2.Vendedor,
     t2.Plan_vendido,
     t2.`type`,
+    t2.expiration_date, -- Seleccionamos la columna expiration_date
     t3.Proof_class_date,
     t3.Hora,
     t3.Sucursal_proof_class
@@ -90,6 +92,7 @@ LEFT JOIN
         Plan_vendido,
         Vendedor,
         `type`,
+        expiration_date, -- Añadimos la columna expiration_date
         trainee_id
     FROM
         Numerado
@@ -104,6 +107,7 @@ LEFT JOIN
         Plan_vendido,
         Vendedor,
         `type`,
+        expiration_date, -- Añadimos la columna expiration_date
         trainee_id
     FROM
         Numerado
