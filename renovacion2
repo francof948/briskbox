@@ -1,0 +1,43 @@
+SELECT 
+    t1.Fecha,
+    t1.Alumno,
+    t1.trainee_id,
+    t1.dni,
+    t1.Sucursal,
+    t1.Plan_vendido,
+    t1.`type`,
+    t1.expiration_date,
+    users.name AS Vendedor,
+    t1.Perfil,
+    LEAD(t1.Fecha) OVER (PARTITION BY t1.trainee_id ORDER BY t1.Fecha) AS Prox_Fecha,
+    LEAD(users.name) OVER (PARTITION BY t1.trainee_id ORDER BY t1.Fecha) AS Prox_Vendedor,
+    LEAD(t1.Plan_vendido) OVER (PARTITION BY t1.trainee_id ORDER BY t1.Fecha) AS Prox_Plan_vendido
+FROM 
+    (SELECT 
+        tc.datetime AS Fecha,
+        tr.name AS Alumno,
+        tr.id AS trainee_id,
+        u.dni,
+        b.name AS Sucursal,
+        ct.name AS Plan_vendido,
+        tc.`type`,
+        tc.expiration_date,
+        t.user_id,
+        up.`type` AS Perfil
+    FROM 
+        trainees_credits tc
+    LEFT JOIN boxes b ON tc.box_id = b.id
+    LEFT JOIN trainees tr ON tc.trainee_id = tr.id
+    LEFT JOIN users_profiles up ON tr.id = up.trainee_id
+    LEFT JOIN users u ON up.user_id = u.id
+    LEFT JOIN credits_types ct ON tc.credit_type_id = ct.id
+    LEFT JOIN transactions t ON tc.transaction_id = t.id
+    WHERE 
+        tc.`status` <> 'PENDING' AND tc.`status` <> 'CANCELED') t1
+LEFT JOIN users ON t1.user_id = users.id
+WHERE t1.Plan_vendido <> "Credito de cortesia" 
+    AND t1.Perfil = "TRAINEE"
+    AND t1.Sucursal <> "Aldea de Valle"
+    AND t1.Sucursal <> "Aldea de Urca - Club La Tablada"
+ORDER BY 
+    t1.expiration_date DESC;
