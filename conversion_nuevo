@@ -10,10 +10,9 @@ WITH Numerado AS (
         t1.`type`,
         ROW_NUMBER() OVER (PARTITION BY t1.dni ORDER BY t1.Fecha ASC) AS rn,
         CASE 
-            WHEN t1.Plan_vendido = 'Credito de cortesia' THEN 
-                ROW_NUMBER() OVER (PARTITION BY t1.dni ORDER BY t1.Fecha ASC) + 1 
+            WHEN t1.Plan_vendido = 'Credito de cortesia' THEN NULL
             ELSE 
-                ROW_NUMBER() OVER (PARTITION BY t1.dni ORDER BY t1.Fecha ASC)
+                ROW_NUMBER() OVER (PARTITION BY t1.dni, CASE WHEN t1.Plan_vendido <> 'Credito de cortesia' THEN t1.dni ELSE NULL END ORDER BY t1.Fecha ASC)
         END AS rn_corrected
     FROM 
     (
@@ -95,21 +94,7 @@ LEFT JOIN
     FROM
         Numerado
     WHERE
-        rn = 1 AND Plan_vendido <> 'Credito de cortesia'
-    UNION ALL
-    SELECT
-        Fecha AS Sale_date,
-        Alumno,
-        dni,
-        Sucursal,
-        Plan_vendido,
-        Vendedor,
-        `type`,
-        trainee_id
-    FROM
-        Numerado
-    WHERE
-        rn_corrected = 1 AND Plan_vendido = 'Credito de cortesia'
+        rn_corrected = 1 
 ) t2
 ON t1.trainee_id=t2.trainee_id
 LEFT JOIN 
