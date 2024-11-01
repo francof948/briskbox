@@ -1,8 +1,10 @@
+
 SELECT DISTINCT 
 	YEAR(trainees_clases.date) AS Año,
 	MONTH(trainees_clases.date) AS Mes,
 	users.dni AS DNI,
 	users.name AS Cliente,
+	boxes.name AS Box,
 	clases_types.name AS Actividad,
 	COUNT(DISTINCT(trainees_clases.id)) AS Cantidad
 	
