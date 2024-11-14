@@ -10,7 +10,6 @@ SELECT
     users.name AS Vendedor,
     t1.Perfil AS Perfil,
     
-    -- Próxima fecha, vendedor y plan vendido para el mismo alumno, ordenados por fecha
     LEAD(t1.Fecha, 1) OVER (PARTITION BY t1.trainee_id ORDER BY t1.Fecha) AS Prox_Fecha,
     LEAD(users.name, 1) OVER (PARTITION BY t1.trainee_id ORDER BY t1.Fecha) AS Prox_Vendedor,
     LEAD(t1.Plan_vendido, 1) OVER (PARTITION BY t1.trainee_id ORDER BY t1.Fecha) AS Prox_Plan_vendido
