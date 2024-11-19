@@ -1,15 +1,31 @@
-SELECT 
+SELECT
+		t1.Fecha,
+		t1.Actividad,
+		t1.Plan,
+		t1.Coach,
+		t1.DNI_Coach,
+		t1.Cliente,
+		u.dni AS DNI_Cliente,
+		t1.Estado,
+		t1.created,
+		t1.modified
+FROM 
+(SELECT 
 		w.date AS Fecha,
 		ct.name AS Actividad,
 		w.description AS Plan,
 		us.name AS Coach,
+		us.dni AS DNI_Coach,
 		tr.name AS Cliente,
 		w.`status` AS Estado,
 		w.created,
-		w.modified
+		w.modified,
+		w.trainee_id
 FROM 
 		wods w
 LEFT JOIN clases_types ct ON w.clase_type_id = ct.id
 LEFT JOIN users us ON w.user_id = us.id
 LEFT JOIN trainees tr ON w.trainee_id = tr.id
-ORDER BY w.date DESC;
+ORDER BY w.date DESC) t1
+LEFT JOIN users_profiles up ON t1.trainee_id = up.trainee_id
+LEFT JOIN users u ON up.user_id = u.id;
