@@ -22,5 +22,4 @@ LEFT JOIN clases_types
 ON clases.clase_type_id=clases_types.id
 WHERE trainees_clases.`status`="PRESENT"
 AND trainees_clases.date > "2023-12-31"
-GROUP BY YEAR(trainees_clases.date),MONTH(trainees_clases.date), users.dni, boxes.name, clases_types.name
-ORDER BY users.dni;
+GROUP BY YEAR(trainees_clases.date),MONTH(trainees_clases.date), users.dni, boxes.name, clases_types.name;
