@@ -1,0 +1,13 @@
+SELECT DISTINCT
+    us.dni AS dni,
+    us.name AS cliente,
+    MAX(tc.date) AS Fecha
+FROM trainees_clases tc
+LEFT JOIN boxes bo ON tc.box_id = bo.id
+LEFT JOIN trainees tr ON tc.trainee_id = tr.id
+LEFT JOIN users_profiles up ON tr.id = up.trainee_id
+LEFT JOIN users us ON up.user_id = us.id
+LEFT JOIN clases cl ON tc.clase_id = cl.id
+LEFT JOIN clases_types ct ON cl.clase_type_id = ct.id
+WHERE tc.`status` = "PRESENT"
+GROUP BY us.dni, us.name;
