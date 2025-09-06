@@ -1,0 +1,48 @@
+WITH RankedClasses AS (
+    SELECT
+        trainees_clases.date AS fecha,
+        boxes.name AS sucursal,
+        clases.time AS hora,
+        trainees.name AS Cliente,
+        users.dni AS DNI,
+        clases_types.name AS actividad,
+        ROW_NUMBER() OVER (PARTITION BY trainees.id ORDER BY trainees_clases.date DESC) AS rn
+    FROM trainees_clases
+    LEFT JOIN boxes ON trainees_clases.box_id = boxes.id
+    LEFT JOIN trainees ON trainees_clases.trainee_id = trainees.id
+    LEFT JOIN users_profiles ON trainees.id = users_profiles.trainee_id
+    LEFT JOIN users ON users_profiles.user_id = users.id
+    LEFT JOIN clases ON trainees_clases.clase_id = clases.id
+    LEFT JOIN clases_types ON clases.clase_type_id = clases_types.id
+    WHERE clases_types.name <> 'Clinica'
+      AND trainees_clases.status = 'PRESENT'
+),
+Last50Classes AS (
+    SELECT *
+    FROM RankedClasses
+    WHERE rn <= 30
+),
+BranchFrequency AS (
+    SELECT
+        Cliente,
+        DNI,
+        sucursal,
+        COUNT(*) AS frequency
+    FROM Last50Classes
+    GROUP BY Cliente, DNI, sucursal
+),
+MaxFrequencyBranch AS (
+    SELECT
+        Cliente,
+        DNI,
+        sucursal,
+        frequency,
+        ROW_NUMBER() OVER (PARTITION BY Cliente, DNI ORDER BY frequency DESC, sucursal ASC) AS rn
+    FROM BranchFrequency
+)
+SELECT
+    Cliente,
+    DNI,
+    sucursal AS sucursal_mas_frecuente
+FROM MaxFrequencyBranch
+WHERE rn = 1;
