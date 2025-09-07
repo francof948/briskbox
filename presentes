@@ -1,0 +1,20 @@
+SELECT 
+    us.dni AS DNI,
+    tr.name AS Cliente,
+    tc.date AS Fecha,
+    bo.name AS Sucursal,
+    COUNT(tc.id) AS QClases
+FROM trainees_clases tc
+LEFT JOIN clases cl ON tc.clase_id = cl.id
+LEFT JOIN clases_types ct ON cl.clase_type_id = ct.id
+LEFT JOIN trainees tr ON tc.trainee_id = tr.id
+LEFT JOIN users_profiles up ON tr.id = up.trainee_id
+LEFT JOIN users us ON up.user_id = us.id
+LEFT JOIN boxes bo ON tc.box_id = bo.id
+WHERE tc.status = 'PRESENT'
+  AND tc.date >= '2024-01-01'
+GROUP BY
+    us.dni,
+    tr.name,
+    tc.date,
+    bo.name;
