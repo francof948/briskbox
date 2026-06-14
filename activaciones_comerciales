@@ -1,0 +1,17 @@
+SELECT 
+		tc.datetime AS Fecha_venta,
+		b.name AS Sucursal,
+		t.name AS Cliente,
+		ct.name AS Tipo_de_credito,
+		tc.expiration_date AS Expiration_date,
+		p.name AS Convenio,
+		tc.`status` AS Estado
+FROM trainees_credits tc 
+LEFT JOIN boxes b ON tc.box_id=b.id
+LEFT JOIN trainees t ON tc.trainee_id=t.id
+LEFT JOIN transactions tr ON tc.transaction_id=tr.id
+LEFT JOIN credits_types ct ON tc.credit_type_id=ct.id
+LEFT JOIN promotions p ON tc.promotion_id=p.id
+WHERE p.`name` <> "" AND tc.`status`<>"PENDING" AND tc.`status`<>"CANCELED"
+AND tc.datetime>="2025-11-01" AND p.`name`<>"Pase Libre con Debito Automático - Convenios" AND p.`name` NOT LIKE '%AE%'
+ORDER BY tc.datetime ASC
